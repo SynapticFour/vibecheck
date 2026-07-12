@@ -1,0 +1,16 @@
+{
+  "name": "vibecheck",
+  "version": "0.1.0",
+  "description": "Local-first health scan for AI-generated codebases. Nothing leaves your machine.",
+  "type": "module",
+  "bin": {
+    "vibecheck": "./bin/scan.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "jscpd": "^3.5.10"
+  },
+  "license": "MIT"
+}
