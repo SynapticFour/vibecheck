@@ -1,17 +1,39 @@
 # vibecheck
 
+![CI](https://github.com/SynapticFour/vibecheck/actions/workflows/ci.yml/badge.svg)
+
 A local-first health scan for AI-generated ("vibe coded") codebases. Run it against your own repo, get a score and specific findings in your terminal, nothing leaves your machine.
 
+## Run it right now, no install/publish needed
+
 ```
-npx vibecheck .          # scan current directory
-npx vibecheck /path/to/repo
+npx github:SynapticFour/vibecheck /path/to/repo
 ```
 
-(Not published to npm yet — see "Publishing" below. Until then, run locally: `node bin/scan.js /path/to/repo`.)
+This clones and runs directly from GitHub — no npm account, no publish step. Good for early testing and for security-conscious users who'd rather audit a pinned commit than trust the npm registry's supply chain.
+
+For a specific commit/tag instead of the latest `main` (recommended once you're pointing real prospects at this, so the code they audit is the exact code that runs):
+
+```
+npx github:SynapticFour/vibecheck#<commit-or-tag> /path/to/repo
+```
+
+## Or run it fully offline, no GitHub fetch at all
+
+```
+git clone https://github.com/SynapticFour/vibecheck
+cd vibecheck
+make install
+make scan path=/path/to/repo
+```
+
+(`make scan` with no `path=` defaults to the current directory.)
 
 ## Why local-first, not a web upload
 
 This is a deliberate architecture choice, not just a policy: there is no server in the scan path, no upload step, no code transmitted anywhere. That's a structural guarantee, not a promise you have to trust — read `bin/scan.js` and the four files in `src/checks/`, there's no `fetch`/`http` call anywhere near the scan logic. The only network-adjacent thing in this entire tool is a URL printed at the end, which you have to choose to open yourself.
+
+Total runtime dependencies: 1 (`jscpd`) plus its own sub-dependencies — see `package-lock.json` for the full, exact tree.
 
 If you want to verify this yourself: run it with your network disconnected. Nothing changes.
 
@@ -55,3 +77,15 @@ Suggested next step: route submissions from that page into the same SQLite ledge
 npm install
 node bin/scan.js /path/to/any/repo
 ```
+
+Or use the Makefile targets:
+
+```
+make install          # one-time: npm install
+make scan path=...    # scan a repo (defaults to .)
+make test-demo        # self-scan this repo
+```
+
+## Roadmap
+
+- [ ] Single-binary builds (macOS/Linux/Windows) via Node's Single Executable Applications feature, built reproducibly in CI from tagged releases, with published SHA256 checksums so the binary can be verified against the source commit it was built from. Not started — worth doing once there's real usage, not before.
