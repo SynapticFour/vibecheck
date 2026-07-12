@@ -39,7 +39,7 @@ If you want to verify this yourself: run it with your network disconnected. Noth
 
 ## What it checks (v1 — deliberately narrow)
 
-1. **Secrets** — a lightweight built-in regex/pattern scanner (AWS keys, generic API key assignments, private key blocks, Slack/GitHub/Stripe tokens) across both your current working tree *and* git history. The history check matters most: a key that was committed and later "removed" is usually still sitting in a prior commit.
+1. **Secrets** — a lightweight built-in regex/pattern scanner (AWS keys, generic API key assignments, private key blocks, Slack/GitHub/Stripe tokens) across both your current working tree _and_ git history. The history check matters most: a key that was committed and later "removed" is usually still sitting in a prior commit.
 2. **Duplicate code** — via [jscpd](https://github.com/kucherenko/jscpd), the "AI wrote this function four times with slightly different names" signal.
 3. **Commit churn** — counts how many of the last 100 commits look like fix/patch/revert commits. A wall of "fix", "fix again", "actually fix this time" is one of the most honest tells that something shipped before it was understood.
 4. **Test presence** — binary check: does a test suite exist at all, does CI exist to run it. No attempt at measuring actual coverage % — that would need language-specific tooling this v1 deliberately skips.
@@ -51,6 +51,7 @@ Explicitly **not** attempted in v1: complexity analysis, dependency bloat, anyth
 Starts at 100, deductions are printed in the report itself — see `src/score.js` for the exact formula. This is intentional: this audience (engineers) trusts a visible formula more than a polished but opaque score. Don't hide this behind a paywall even in future versions.
 
 Current formula (subject to calibration as you run it against more real repos):
+
 - up to −40 for secrets found (−15 per secret, capped)
 - up to −25 for duplicate code (~1 point per 20 duplicated lines, capped)
 - up to −20 for high fix-commit ratio (kicks in above 30% of recent commits)

@@ -5,14 +5,26 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const TEST_CONFIG_FILES = [
-  "jest.config.js", "jest.config.ts", "jest.config.mjs", "jest.config.cjs",
-  "vitest.config.js", "vitest.config.ts",
-  "pytest.ini", "pyproject.toml", "setup.cfg",
-  "phpunit.xml", "phpunit.xml.dist",
+  "jest.config.js",
+  "jest.config.ts",
+  "jest.config.mjs",
+  "jest.config.cjs",
+  "vitest.config.js",
+  "vitest.config.ts",
+  "pytest.ini",
+  "pyproject.toml",
+  "setup.cfg",
+  "phpunit.xml",
+  "phpunit.xml.dist",
   "karma.conf.js",
 ];
 const TEST_DIR_NAMES = ["test", "tests", "__tests__", "spec", "specs"];
-const CI_PATHS = [".github/workflows", ".gitlab-ci.yml", ".circleci/config.yml", "azure-pipelines.yml"];
+const CI_PATHS = [
+  ".github/workflows",
+  ".gitlab-ci.yml",
+  ".circleci/config.yml",
+  "azure-pipelines.yml",
+];
 
 function hasTestFiles(dir, depth = 0) {
   if (depth > 4) return false;
@@ -34,7 +46,10 @@ function hasTestFiles(dir, depth = 0) {
     if (stat.isDirectory()) {
       if (TEST_DIR_NAMES.includes(entry.toLowerCase())) return true;
       if (hasTestFiles(full, depth + 1)) return true;
-    } else if (/\.(test|spec)\.(js|ts|jsx|tsx|py|rb|go)$/.test(entry) || /^test_.*\.py$/.test(entry)) {
+    } else if (
+      /\.(test|spec)\.(js|ts|jsx|tsx|py|rb|go)$/.test(entry) ||
+      /^test_.*\.py$/.test(entry)
+    ) {
       return true;
     }
   }

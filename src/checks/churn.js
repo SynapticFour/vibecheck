@@ -3,7 +3,8 @@
 // was shipped before it was understood. Pure `git log`, no dependencies.
 import { execSync } from "node:child_process";
 
-const FIX_PATTERN = /\b(fix|fixed|fixes|fixing|bug|bugfix|hotfix|patch|revert|oops|typo|attempt)\b/i;
+const FIX_PATTERN =
+  /\b(fix|fixed|fixes|fixing|bug|bugfix|hotfix|patch|revert|oops|typo|attempt)\b/i;
 const WINDOW = 100; // most recent N commits considered
 
 export function runChurnCheck(repoPath) {
@@ -16,7 +17,12 @@ export function runChurnCheck(repoPath) {
       .split("\n")
       .filter(Boolean);
   } catch {
-    return { error: "not a git repository or no commit history", total: 0, fixCommits: 0, ratio: 0 };
+    return {
+      error: "not a git repository or no commit history",
+      total: 0,
+      fixCommits: 0,
+      ratio: 0,
+    };
   }
 
   const total = lines.length;

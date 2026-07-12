@@ -26,7 +26,9 @@ function grade(score) {
 }
 
 async function main() {
-  console.log(`\nvibecheck — scanning ${target}\n(everything below runs locally; nothing is sent anywhere)\n`);
+  console.log(
+    `\nvibecheck — scanning ${target}\n(everything below runs locally; nothing is sent anywhere)\n`,
+  );
 
   const secrets = runSecretsCheck(target);
   const duplicates = await runDuplicatesCheck(target);
@@ -38,7 +40,9 @@ async function main() {
   console.log(`Score: ${score}/100  [${grade(score)}]  ${bar(score)}\n`);
 
   if (deductions.length === 0) {
-    console.log("No issues found across the checks run here. (This is a narrow scan — see README for what it does and doesn't cover.)\n");
+    console.log(
+      "No issues found across the checks run here. (This is a narrow scan — see README for what it does and doesn't cover.)\n",
+    );
   } else {
     console.log("How this score was calculated (starts at 100):");
     for (const d of deductions) console.log(`  ${d}`);
@@ -51,11 +55,15 @@ async function main() {
       console.log(`  - ${f.name} in ${f.source}  (${f.preview})`);
     }
     if (secrets.count > 5) console.log(`  ...and ${secrets.count - 5} more`);
-    console.log(`  → If real, rotate these immediately regardless of anything else in this report.\n`);
+    console.log(
+      `  → If real, rotate these immediately regardless of anything else in this report.\n`,
+    );
   }
 
   if (duplicates.totalDuplicateLines > 0) {
-    console.log(`⚠ Duplicate code: ~${duplicates.totalDuplicateLines} lines across ${duplicates.cloneCount} clone group(s)`);
+    console.log(
+      `⚠ Duplicate code: ~${duplicates.totalDuplicateLines} lines across ${duplicates.cloneCount} clone group(s)`,
+    );
     for (const c of duplicates.topOffenders || []) {
       console.log(`  - ${c.fileA} <-> ${c.fileB}  (${c.lines} lines)`);
     }
@@ -63,7 +71,9 @@ async function main() {
   }
 
   if (churn.total > 0 && churn.ratio > 0.3) {
-    console.log(`⚠ Commit churn: ${churn.fixCommits} of the last ${churn.total} commits look like fixes (${Math.round(churn.ratio * 100)}%)\n`);
+    console.log(
+      `⚠ Commit churn: ${churn.fixCommits} of the last ${churn.total} commits look like fixes (${Math.round(churn.ratio * 100)}%)\n`,
+    );
   }
 
   if (!tests.hasTests) {
@@ -77,7 +87,9 @@ async function main() {
   }
 
   console.log("---");
-  console.log(`Want a prioritized fix roadmap, or a second pair of eyes on whether this is worth rescuing?`);
+  console.log(
+    `Want a prioritized fix roadmap, or a second pair of eyes on whether this is worth rescuing?`,
+  );
   console.log(`  → ${REPORT_URL}\n`);
 }
 

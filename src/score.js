@@ -16,14 +16,16 @@ export function computeScore({ secrets, duplicates, churn, tests }) {
     // ~1 point per 20 duplicate lines, capped — a rough but honest proxy.
     const d = Math.min(25, Math.round(dupLines / 20));
     score -= d;
-    deductions.push(`-${d} for ~${dupLines} duplicated lines across ${duplicates.cloneCount} clone group(s)`);
+    deductions.push(
+      `-${d} for ~${dupLines} duplicated lines across ${duplicates.cloneCount} clone group(s)`,
+    );
   }
 
   if (churn.total > 0 && churn.ratio > 0.3) {
     const d = Math.min(20, Math.round((churn.ratio - 0.3) * 100));
     score -= d;
     deductions.push(
-      `-${d} for high fix-commit ratio (${churn.fixCommits}/${churn.total} of last ${churn.total} commits look like fixes)`
+      `-${d} for high fix-commit ratio (${churn.fixCommits}/${churn.total} of last ${churn.total} commits look like fixes)`,
     );
   }
 
