@@ -90,3 +90,7 @@ make test-demo        # self-scan this repo
 ## Roadmap
 
 - [ ] Single-binary builds (macOS/Linux/Windows) via Node's Single Executable Applications feature, built reproducibly in CI from tagged releases, with published SHA256 checksums so the binary can be verified against the source commit it was built from. Not started — worth doing once there's real usage, not before.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
