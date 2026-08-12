@@ -4,6 +4,8 @@
 
 A local-first health scan for AI-generated ("vibe coded") codebases. Run it against your own repo, get a score and specific findings in your terminal, nothing leaves your machine.
 
+**Maintenance budget:** fenced satellite — monthly CI/audit hygiene only (Synaptic Four org fencing).
+
 ## Run it right now, no install/publish needed
 
 ```
