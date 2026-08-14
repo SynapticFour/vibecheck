@@ -1,8 +1,25 @@
-// Duplicate-code detection via jscpd — the most literal signal of
-// "the AI wrote this same block four times with slightly different names."
+// Duplicate-code detection, two layers:
+//   1. Literal (type-1) clones via jscpd — cheap, token-identical copy-paste.
+//   2. Structural (type-2) clones via src/checks/structural.js — same logic
+//      with renamed identifiers, which jscpd cannot see.
 import { detectClones } from "jscpd";
+import { findStructuralClones } from "./structural.js";
+
+const emptyLiteral = {
+  duplicatePercent: 0,
+  clones: [],
+  cloneCount: 0,
+  totalDuplicateLines: 0,
+  topOffenders: [],
+};
 
 export async function runDuplicatesCheck(repoPath) {
+  const literal = await findLiteralClones(repoPath);
+  const structural = findStructuralClones(repoPath);
+  return { ...literal, ...structural };
+}
+
+async function findLiteralClones(repoPath) {
   let clones;
   try {
     clones = await detectClones({
@@ -21,11 +38,11 @@ export async function runDuplicatesCheck(repoPath) {
       minTokens: 50,
     });
   } catch (e) {
-    return { error: e.message, duplicatePercent: 0, clones: [] };
+    return { ...emptyLiteral, error: e.message };
   }
 
   if (!clones.length) {
-    return { duplicatePercent: 0, clones: [] };
+    return emptyLiteral;
   }
 
   const totalDuplicateLines = clones.reduce(
@@ -54,5 +71,7 @@ export async function runDuplicatesCheck(repoPath) {
     cloneCount: clones.length,
     totalDuplicateLines,
     topOffenders,
+    duplicatePercent: 0,
+    clones,
   };
 }

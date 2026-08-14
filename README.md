@@ -2,9 +2,7 @@
 
 ![CI](https://github.com/SynapticFour/vibecheck/actions/workflows/ci.yml/badge.svg)
 
-A local-first health scan for AI-generated ("vibe coded") codebases. Run it against your own repo, get a score and specific findings in your terminal, nothing leaves your machine.
-
-**Maintenance budget:** fenced satellite — monthly CI/audit hygiene only (Synaptic Four org fencing).
+A local-first health scan for AI-generated ("vibe coded") codebases. Run it against your own repo, get a score and specific findings in your terminal. Nothing leaves your machine.
 
 ## Run it right now, no install/publish needed
 
@@ -14,7 +12,7 @@ npx github:SynapticFour/vibecheck /path/to/repo
 
 This clones and runs directly from GitHub — no npm account, no publish step. Good for early testing and for security-conscious users who'd rather audit a pinned commit than trust the npm registry's supply chain.
 
-For a specific commit/tag instead of the latest `main` (recommended once you're pointing real prospects at this, so the code they audit is the exact code that runs):
+For a specific commit/tag instead of the latest `main` (recommended so the code you audit is the exact code that runs):
 
 ```
 npx github:SynapticFour/vibecheck#<commit-or-tag> /path/to/repo
@@ -33,16 +31,18 @@ make scan path=/path/to/repo
 
 ## Why local-first, not a web upload
 
-This is a deliberate architecture choice, not just a policy: there is no server in the scan path, no upload step, no code transmitted anywhere. That's a structural guarantee, not a promise you have to trust — read `bin/scan.js` and the four files in `src/checks/`, there's no `fetch`/`http` call anywhere near the scan logic. The only network-adjacent thing in this entire tool is a URL printed at the end, which you have to choose to open yourself.
+This is a deliberate architecture choice, not just a policy: there is no server in the scan path, no upload step, no code transmitted anywhere. That's a structural guarantee, not a promise you have to trust — read `bin/scan.js` and the files in `src/checks/`, there's no `fetch`/`http` call anywhere near the scan logic. The only network-adjacent thing in this entire tool is an optional URL printed at the end, and only if you set `VIBECHECK_REPORT_URL` yourself.
 
-Total runtime dependencies: 1 (`jscpd`) plus its own sub-dependencies — see `package-lock.json` for the full, exact tree.
+Runtime dependencies: `jscpd` (literal clone detection) and `acorn` (JS parser for renamed-identifier clones), plus their own sub-dependencies — see `package-lock.json` for the full, exact tree.
 
 If you want to verify this yourself: run it with your network disconnected. Nothing changes.
 
 ## What it checks (v1 — deliberately narrow)
 
 1. **Secrets** — a lightweight built-in regex/pattern scanner (AWS keys, generic API key assignments, private key blocks, Slack/GitHub/Stripe tokens) across both your current working tree _and_ git history. The history check matters most: a key that was committed and later "removed" is usually still sitting in a prior commit.
-2. **Duplicate code** — via [jscpd](https://github.com/kucherenko/jscpd), the "AI wrote this function four times with slightly different names" signal.
+2. **Duplicate code** — two layers, reported separately:
+   - **Literal (type-1)** via [jscpd](https://github.com/kucherenko/jscpd): identical token sequences, i.e. straight copy-paste.
+   - **Structural (type-2)** via an Acorn AST pass: same function shape after local identifiers are normalized to positional placeholders (`ID1`, `ID2`, …). This is the "AI wrote this function four times with slightly different names" signal, which token-literal matching cannot see.
 3. **Commit churn** — counts how many of the last 100 commits look like fix/patch/revert commits. A wall of "fix", "fix again", "actually fix this time" is one of the most honest tells that something shipped before it was understood.
 4. **Test presence** — binary check: does a test suite exist at all, does CI exist to run it. No attempt at measuring actual coverage % — that would need language-specific tooling this v1 deliberately skips.
 
@@ -50,34 +50,23 @@ Explicitly **not** attempted in v1: complexity analysis, dependency bloat, anyth
 
 ## Scoring
 
-Starts at 100, deductions are printed in the report itself — see `src/score.js` for the exact formula. This is intentional: this audience (engineers) trusts a visible formula more than a polished but opaque score. Don't hide this behind a paywall even in future versions.
+Starts at 100, deductions are printed in the report itself — see `src/score.js` for the exact formula. This is intentional: this audience (engineers) trusts a visible formula more than a polished but opaque score.
 
 Current formula (subject to calibration as you run it against more real repos):
 
 - up to −40 for secrets found (−15 per secret, capped)
-- up to −25 for duplicate code (~1 point per 20 duplicated lines, capped)
+- up to −25 for literal duplicate code (~1 point per 20 duplicated lines, capped)
+- up to −25 for structurally similar (renamed) duplicate code (~1 point per 20 lines, capped)
 - up to −20 for high fix-commit ratio (kicks in above 30% of recent commits)
 - −15 for no test suite, additional −5 if tests exist but no CI runs them
 
-**Known calibration gap from initial testing:** the duplicate-line count from jscpd can run higher than intuition suggests for small files (a 3-file, ~7-line-each duplicate test showed 418 "duplicate lines" — jscpd's token-based clone matching counts differently than a human would eyeball it). Worth running against 5-10 real repos before trusting the duplicate deduction weight; the secrets and churn checks calibrated cleanly in testing and are more trustworthy as-is.
-
-## The funnel
-
-At the end of every scan, the report prints one line pointing to a URL (`VIBECHECK_REPORT_URL` env var, currently a placeholder in `bin/scan.js` — **set this before shipping**) for "the full report + fix roadmap." Nothing is sent automatically — visiting that link is the explicit opt-in. What that page collects should be a small summary (score + finding counts), never code or secret values.
-
-Suggested next step: route submissions from that page into the same SQLite ledger `lead-radar` already uses, as a new `source: "scanner-inbound"` — these are your highest-intent leads (self-selected), worth keeping in the same place you already check every morning rather than building a second system.
-
-## Publishing to npm (so `npx vibecheck` works for real)
-
-1. Pick a final name (check availability: `npm view <name>` should 404) — `vibecheck` is a placeholder, likely taken or too generic; a name in the "Slopfix" register probably serves you better for recognition in this niche.
-2. `npm login`, then `npm publish` from this directory.
-3. Set `VIBECHECK_REPORT_URL` to your real landing page before publishing.
-4. Open-source the repo (public GitHub) before or at publish time — per the trust discussion, this is the single highest-leverage credibility move for this specific tool, more than any wording on a privacy page.
+**Known calibration note:** the duplicate-line count from jscpd can run higher than intuition suggests for small files (token-based clone matching counts differently than a human would eyeball it). The structural layer only flags exact matches after identifier normalization, so two unrelated functions of similar length are not treated as clones. Secrets and churn calibrated cleanly in testing.
 
 ## Local development
 
 ```
 npm install
+npm test
 node bin/scan.js /path/to/any/repo
 ```
 
@@ -88,6 +77,8 @@ make install          # one-time: npm install
 make scan path=...    # scan a repo (defaults to .)
 make test-demo        # self-scan this repo
 ```
+
+Optional: set `VIBECHECK_REPORT_URL` to print a "full report + fix roadmap" link at the end of a scan. If unset, the report ends without a call-to-action (no placeholder URL).
 
 ## Roadmap
 

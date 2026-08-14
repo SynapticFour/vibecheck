@@ -12,7 +12,8 @@
   "scripts": {
     "lint": "eslint .",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "node --test test/*.test.js"
   },
   "lint-staged": {
     "*.js": [
@@ -21,6 +22,7 @@
     ]
   },
   "dependencies": {
+    "acorn": "^8.15.0",
     "jscpd": "^3.5.10"
   },
   "license": "MIT",

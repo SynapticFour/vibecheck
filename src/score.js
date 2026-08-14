@@ -15,10 +15,23 @@ export function computeScore({ secrets, duplicates, churn, tests }) {
   if (dupLines > 0) {
     // ~1 point per 20 duplicate lines, capped — a rough but honest proxy.
     const d = Math.min(25, Math.round(dupLines / 20));
-    score -= d;
-    deductions.push(
-      `-${d} for ~${dupLines} duplicated lines across ${duplicates.cloneCount} clone group(s)`,
-    );
+    if (d > 0) {
+      score -= d;
+      deductions.push(
+        `-${d} for ~${dupLines} literal duplicated lines across ${duplicates.cloneCount} clone group(s)`,
+      );
+    }
+  }
+
+  const structLines = duplicates.totalStructuralDuplicateLines || 0;
+  if (structLines > 0) {
+    const d = Math.min(25, Math.round(structLines / 20));
+    if (d > 0) {
+      score -= d;
+      deductions.push(
+        `-${d} for ~${structLines} structurally similar (renamed) lines across ${duplicates.structuralCloneCount} clone group(s)`,
+      );
+    }
   }
 
   if (churn.total > 0 && churn.ratio > 0.3) {

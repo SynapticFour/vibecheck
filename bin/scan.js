@@ -8,7 +8,7 @@ import { runChurnCheck } from "../src/checks/churn.js";
 import { runTestPresenceCheck } from "../src/checks/tests.js";
 import { computeScore } from "../src/score.js";
 
-const REPORT_URL = process.env.VIBECHECK_REPORT_URL || "https://example.com/report"; // TODO: set your real URL
+const REPORT_URL = process.env.VIBECHECK_REPORT_URL || "";
 
 const target = process.argv[2] || ".";
 
@@ -62,10 +62,21 @@ async function main() {
 
   if (duplicates.totalDuplicateLines > 0) {
     console.log(
-      `⚠ Duplicate code: ~${duplicates.totalDuplicateLines} lines across ${duplicates.cloneCount} clone group(s)`,
+      `⚠ Literal duplicates: ~${duplicates.totalDuplicateLines} lines across ${duplicates.cloneCount} clone group(s)`,
     );
     for (const c of duplicates.topOffenders || []) {
       console.log(`  - ${c.fileA} <-> ${c.fileB}  (${c.lines} lines)`);
+    }
+    console.log("");
+  }
+
+  if (duplicates.totalStructuralDuplicateLines > 0) {
+    console.log(
+      `⚠ Structurally similar (renamed) duplicates: ~${duplicates.totalStructuralDuplicateLines} lines across ${duplicates.structuralCloneCount} clone group(s)`,
+    );
+    for (const c of duplicates.structuralOffenders || []) {
+      const names = c.nameA || c.nameB ? `  ${c.nameA || "?"} ~ ${c.nameB || "?"}` : "";
+      console.log(`  - ${c.fileA} <-> ${c.fileB}  (${c.lines} lines)${names}`);
     }
     console.log("");
   }
@@ -87,10 +98,14 @@ async function main() {
   }
 
   console.log("---");
-  console.log(
-    `Want a prioritized fix roadmap, or a second pair of eyes on whether this is worth rescuing?`,
-  );
-  console.log(`  → ${REPORT_URL}\n`);
+  if (REPORT_URL) {
+    console.log(
+      `Want a prioritized fix roadmap, or a second pair of eyes on whether this is worth rescuing?`,
+    );
+    console.log(`  → ${REPORT_URL}\n`);
+  } else {
+    console.log("(no report URL configured — set VIBECHECK_REPORT_URL to enable this)\n");
+  }
 }
 
 main().catch((e) => {
