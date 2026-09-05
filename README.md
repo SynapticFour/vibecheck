@@ -1,5 +1,14 @@
 # vibecheck
 
+> **Development paused (2026-09).** This repository is parked.
+>
+> It is **not Ferrum**, not the GA4GH released join, and not a Synaptic Four product SKU.
+>
+> **What this is:** a local-first scanner for AI-generated (“vibe coded”)
+> codebases. A toy/tooling experiment, unrelated to the genomics join.
+>
+> Do not treat this tree as a product offering or as Ferrum evidence.
+
 ![CI](https://github.com/SynapticFour/vibecheck/actions/workflows/ci.yml/badge.svg)
 
 A local-first health scan for AI-generated ("vibe coded") codebases. Run it against your own repo, get a score and specific findings in your terminal. Nothing leaves your machine.
